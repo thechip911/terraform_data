@@ -1,0 +1,78 @@
+version: '2.2'
+services:
+  nginx:
+    container_name: jenkins_nginx_mach_x
+    restart: always
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    networks:
+      - jenkins
+    volumes:
+      - /var/log/nginx/:/var/log/nginx/
+
+  app:
+    image: jenkins/jenkins
+    container_name: jenkins_app_mach_x
+    restart: always
+    environment:
+      - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_CERT_PATH=/certs/client
+      - DOCKER_TLS_VERIFY=1
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client:ro
+    networks:
+      - jenkins
+    privileged: true
+    user: root
+
+  prod_agent_node_1:
+    networks:
+      - jenkins
+    container_name: prod_agent_node_1
+    restart: always
+    image: jenkins/ssh-agent
+    privileged: true
+    user: root
+    expose:
+      - 22
+    volumes:
+      - prod-agent-1:/home/jenkins
+    depends_on:
+      - app
+    environment:
+      - JENKINS_AGENT_SSH_PUBKEY=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCsGxfxFvOkHkyk7Dt0ts8/VqEBzO/jUGzYIcxBW7XEooiopIiNUzBAfUJlyX/sSMezZ+V7XY4tBdQeVav7J1N4+rJ71xzbummnq7f3C7xPlm2o1CoPBMnNIHDQT4GeOaF8t8hY0afzXg1gAWBCl9e71KC8CgqgO2kk1qBtsPT7V3ksImIoi04pclOHBNpO5eJ1G7lKahUAFPyTTBlrMrPStNYmWA7nSesFkT3/pxk4Wmr1WmsZggBlpboZ505g7I/uIVSZmaX2Uae2i1apGSzgnhLP2di9SffB6QEK5h+JaxHD4cQEEczX8C2fpCNf/ePByrZ4mWKzuNeZqyGM5VNeNlm1miv58RyMC7WBaYhIp6G4RsEPAGRt+JmvGvsSMaxhtI/DkYWmkRll4S1sZBx8zNeLXiAdmD1NABQobhnJEscIN1Wz744n5Qob38HN2p76cDChr3Uh7Z2FCotX9XTF85A8Yu6u7Z3qlXG62TW09DODSROej1fFuOIWGb3swkoXv0PGUENJBBLlvoiQAlkZ/hlgg8zrLADlV/AzpB9/5EC64/Q4Lw1Ugdr2uuBUyHY6Qkbm4Pz5OyE32OPP5Z/vaZSGewkZDMuoe/cBGabdy8fwtkVht0glidFAZMeb3qZd20axVQJDgLFAoXEKNUNrNx3zkL43+40IJ7uv6hA9Nw== jenkins.node.1@paymeindia.in
+
+  prod_agent_node_2:
+    networks:
+      - jenkins
+    container_name: prod_agent_node_2
+    restart: always
+    image: jenkins/ssh-agent
+    privileged: true
+    user: root
+    expose:
+      - 23
+    volumes:
+      - prod-agent-2:/home/jenkins
+    depends_on:
+      - app
+    environment:
+      - JENKINS_AGENT_SSH_PUBKEY=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDEVNyHOd56ZfENXJw7RoQaHp6OPOQh1n6fm+07zibviJ8MX43efQVIo9FEzPCBSunbwyas91309eoXUjBB2VFG2g/A2zBOadz6r30PgL/muj4phS2Tc04d7BjKC2lMlDn+L5DxVz6x+GALaGPPazzTKXx0tP2ZfUUeIcw6gXsMvBZpS3iO4ktAIY69N35MaE0fOTpWzaRfIN6Z4VD7iNO5zAqJOjGCbpn9FjCDsAZjCkzvB9/z5p7nrLzijrFCN6cZOI7g0oWIiklbn/3M18/yK3Gm9eR98XRBZaHOQNY3Zk0naYqMaLR1Kc91u8p07G8GipbYMvxHI8MWQx8wVvPyoqKKBaoG1yQmNROeaX6mxpQDumSAuyuEzrio2EiWcUy5NyRxx0ICEDQ98l2wRA5p3uOkh+hqRzw9eLydVKj+hdhnvTROAR/UhOp2GDq/D7N5bHv/ObnrGF1zKFfkseuEI+23clGlTM/BXbZvYDFN7krJYaR4q52UbrHyZU/A9PcWdgw+bnz0zQbq2ikKRTiA4s2wuCwRMFNjXPj+PsebjRAi4k6HNeBk5vDAFaGVMGj75O+g5HkPSLnTasZIl7F87AW3UULXCsNLh6EbRBeam0TeL8y+HP4bVjP02CMt8VtnkSn6JXuSWWSYGSw2e3nBCm8JenkFrCIaiCHdvpcMlw== jenkins.node.2@paymeindia.in
+
+volumes:
+  jenkins-data:
+    driver: local
+  jenkins-docker-certs:
+    driver: local
+  prod-agent-1:
+    driver: local
+  prod-agent-2:
+    driver: local
+
+networks:
+  jenkins:
+    driver: bridge
