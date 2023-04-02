@@ -1,0 +1,8 @@
+Deploye Jenkins via below command
+
+docker compose -f jenkins.yml up -d
+
+open and setup jenkins
+
+the code can be tracked in git repo
+
